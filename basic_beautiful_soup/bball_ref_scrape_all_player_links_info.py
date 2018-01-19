@@ -26,6 +26,7 @@ tns = """
 """
 
 usr = "nba"
+pwd = ""
 engine = create_engine('oracle+cx_oracle://%s:%s@%s' % (usr, pwd, tns))
 
 
