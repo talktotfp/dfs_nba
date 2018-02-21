@@ -12,9 +12,7 @@ from string import ascii_lowercase
 from sqlalchemy import types, create_engine
 from dateutil.parser import parse
 
-#######################################################
-### DB connection strings config
-#######################################################
+#info for database connection (as TNS config)
 tns = """
   (DESCRIPTION =
     (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 1522))
@@ -26,7 +24,7 @@ tns = """
 """
 
 usr = "nba"
-pwd = ""
+pwd = "rp4490"
 engine = create_engine('oracle+cx_oracle://%s:%s@%s' % (usr, pwd, tns))
 
 
@@ -45,14 +43,12 @@ def isNumber(s):
         return True
     except ValueError:
         pass
- 
     try:
         import unicodedata
         unicodedata.numeric(s)
         return True
     except (TypeError, ValueError):
         pass
- 
     return False
 
 #Standard table scraper with slight tweaks to accomodate specific pages    
@@ -107,6 +103,7 @@ for letter in ascii_lowercase:
         else:       #append to dataframe all other iterations
             df2 = pd.DataFrame(data = body, columns = header)
             df = df.append(df2)
+        
 
 #function to parse dates or return null            
 def dateParser(stringIn):
@@ -114,21 +111,24 @@ def dateParser(stringIn):
         x = parse(stringIn)
         return x
     except:
-        return None       
+        return parse("1900-01-01")
+     
 applyDateParser = lambda x: dateParser(x)
 
 #transform date fields from strings
 df['BIRTH_DATE'] = df['BIRTH_DATE'].apply(applyDateParser)
 #cut the link to retrieve only the basketball reference ID
 df['BREF_ID'] = df['BREF_ID'].apply(lambda x: str.replace(x[11:],'.html',''))  
+#replace any n/a weights
+df['WT'] = df['WT'].replace('N/A', 0)
 
 #prepare datatype for SQL insertion 
 dtyp = {c:types.VARCHAR(df[c].str.len().max())
         for c in df.columns[df.dtypes == 'object'].tolist()}
-
+         
 #perform SQL insertion
 try:    
-    df.to_sql('players', engine, index=True, index_label = 'ID', if_exists='replace',dtype=dtyp)
+    df.to_sql('players', engine, index=True, index_label = 'ID', if_exists='replace',dtype=dtyp, chunksize = 10)
 except BaseException as e:
     print('Failed to write to Oracle: '+ str(e))
 
