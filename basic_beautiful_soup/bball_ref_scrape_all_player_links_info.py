@@ -23,7 +23,7 @@ tns = """
   )
 """
 
-usr = "nba"
+usr = "dfs"
 pwd = "rp4490"
 engine = create_engine('oracle+cx_oracle://%s:%s@%s' % (usr, pwd, tns))
 
