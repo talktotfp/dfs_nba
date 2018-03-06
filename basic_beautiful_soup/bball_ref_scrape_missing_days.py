@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Mar  2 10:20:27 2018
-
-@author: tpauley
+  _   _ ____             _____                      _                _____                                
+ | \ | |  _ \   /\      / ____|                    | |              / ____|                               
+ |  \| | |_) | /  \    | |  __  __ _ _ __ ___   ___| | ___   __ _  | (___   ___ _ __ __ _ _ __   ___ _ __ 
+ | . ` |  _ < / /\ \   | | |_ |/ _` | '_ ` _ \ / _ \ |/ _ \ / _` |  \___ \ / __| '__/ _` | '_ \ / _ \ '__|
+ | |\  | |_) / ____ \  | |__| | (_| | | | | | |  __/ | (_) | (_| |  ____) | (__| | | (_| | |_) |  __/ |   
+ |_| \_|____/_/    \_\  \_____|\__,_|_| |_| |_|\___|_|\___/ \__, | |_____/ \___|_|  \__,_| .__/ \___|_|   
+                                                             __/ |                       | |              
+                                                            |___/                        |_|  
 """
-
 import bs4
 import requests
 import pandas as pd
@@ -163,14 +167,26 @@ for url in dateDiff(df_date.iloc[0]['MONTHID'],df_date.iloc[0]['DAYID'],df_date.
         try: 
             date = url.replace('https://www.basketball-reference.com/friv/dailyleaders.fcgi?month=','').replace('&day=','/').replace('&year=','/')
             df.to_sql('nba_buffer_gamelog', engine, index=False, if_exists='append',dtype = dtyp, chunksize = 100)
-            print(date)
+            print('-Imported date: ' + date)
         except BaseException as e:
-            print('Failed to write to Oracle: '+ str(e))
+            print('-Failed to write to Oracle: '+ str(e))
         oracle_cur.close()
         oracle_con.close()
     except BaseException as e:
         fail_date = url.replace('https://www.basketball-reference.com/friv/dailyleaders.fcgi?month=','').replace('&day=','/').replace('&year=','/')
-        print('Fail on date ' + fail_date + ': '+ str(e))
+        print('-Fail on date ' + fail_date + ': '+ str(e))
+        
+#open final Oracle connection to perform buffer procedure        
+oracle_con = cx_Oracle.connect('dfs', 'rp4490', dsn_tns)
+oracle_cur = oracle_con.cursor()
+try:
+    oracle_cur.execute('BEGIN NBA_PARSE_BUFFER_GAMELOG(); END;')
+    print('-Buffer table parsed and added to gamelog')
+except BaseException as e:
+    print('Buffer procedure failed')
+    print(str(e))
+oracle_cur.close()
+oracle_con.close()
                 
 
         
