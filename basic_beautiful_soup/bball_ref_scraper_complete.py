@@ -11,7 +11,8 @@
 """
 
 import pandas as pd
-import cx_Oracle
+from sqlalchemy import types
+import datetime
 from secure_scraper_setup import oracleCreator, alchemyCreator, isNumber, table_scrape, dateDiff
 
 #load database connections from secure file
@@ -96,12 +97,38 @@ oracle_con = oracleCreator()
 oracle_cur = oracle_con.cursor()
 try:
     oracle_cur.execute('BEGIN NBA_PARSE_BUFFER_GAMELOG(); END;')
-    print('-Buffer table parsed and added to gamelog')
+    print('-NBA_PARSE_BUFFER_GAMELOG complete'+"  : "+str(datetime.datetime.now()))
 except BaseException as e:
-    print('Buffer procedure failed')
+    print('Buffer procedures failed')
     print(str(e))
+try:
+    oracle_cur.execute('BEGIN NBA_UPDATE_GAMELOG_SEASON(); END;')
+    print('-NBA_UPDATE_GAMELOG_SEASON complete'+"  : "+str(datetime.datetime.now()))
+except BaseException as e:
+    print('Buffer procedures failed')
+    print(str(e))
+try:
+    oracle_cur.execute('BEGIN NBA_UPDATE_GAMELOG_G_COUNT(); END;')
+    print('-NBA_UPDATE_GAMELOG_G_COUNT complete'+"  : "+str(datetime.datetime.now()))
+except BaseException as e:
+    print('Buffer procedures failed')
+    print(str(e))
+try:
+    oracle_cur.execute('BEGIN NBA_UPDATE_PREV_GAMES(); END;')
+    print('-NBA_UPDATE_PREV_GAMES complete'+"  : "+str(datetime.datetime.now()))
+except BaseException as e:
+    print('Buffer procedures failed')
+    print(str(e))
+try:
+    oracle_cur.execute('BEGIN NBA_UPDATE_STAT_BASE(); END;')
+    print('-NBA_UPDATE_STAT_BASE complete'+"  : "+str(datetime.datetime.now()))
+except BaseException as e:
+    print('Buffer procedures failed')
+    print(str(e))
+    
 oracle_cur.close()
 oracle_con.close()
+print('-Finished'+"  : "+str(datetime.datetime.now()))
                 
 
         
